@@ -1,15 +1,27 @@
 const express = require('express');
-const app = express();
-const PORT = 3000;
-
+const bodyParser = require('body-parser');
+const axios = require('axios');
 const cors = require('cors');
-app.use(cors());
+const carsModel = require('./carsModel');
+
+const app = express();
+
+app.use(bodyParser.json());
+app.use(cors()); // Enable CORS for all routes
 
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
+app.get('/api/data', (req, res) => {
+  carsModel.getCars()
+  .then(response => {
+    res.status(200).send(response);
+  })
+  .catch(error => {
+    res.status(500).send(error);
+  })
+})
 
+// Start the server
+const PORT = 5000;
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
