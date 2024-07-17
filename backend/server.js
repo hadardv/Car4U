@@ -11,14 +11,15 @@ app.use(cors()); // Enable CORS for all routes
 
 
 app.get('/api/data', (req, res) => {
-  carsModel.getCars()
-  .then(response => {
-    res.status(200).send(response);
-  })
-  .catch(error => {
-    res.status(500).send(error);
-  })
-})
+  console.log("Received filters:", req.query);
+  carsModel.getCars(req.query)
+    .then(response => {
+      res.status(200).send(response);
+    })
+    .catch(error => {
+      res.status(500).send(error);
+    });
+});
 
 // Start the server
 const PORT = 5000;
