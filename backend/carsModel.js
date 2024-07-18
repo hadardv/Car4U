@@ -36,7 +36,6 @@ const getCars = async (filters) => {
   let queryParams = [];
   let paramIndex = 1;
 
- 
   if (filters.carName) {
     query += ` AND "Car_name" ILIKE $${paramIndex++}`;
     queryParams.push(`%${filters.carName}%`);
@@ -54,10 +53,9 @@ const getCars = async (filters) => {
     queryParams.push(filters.fastCharge);
   }
   if (filters.priceDE) {
-    console.log("Parsed priceDE:", parseFloat(filters.priceDE));
     query += ` AND "Price.DE." <> 'NA' AND "Price.DE."::numeric <= $${paramIndex++}`;
     queryParams.push(parseFloat(filters.priceDE));
-}
+  }
   if (filters.range) {
     query += ` AND "Range" = $${paramIndex++}`;
     queryParams.push(filters.range);
@@ -73,22 +71,15 @@ const getCars = async (filters) => {
   console.log("Executing SQL query:", query);
   console.log("With parameters:", queryParams);
 
-  queryParams.forEach((param) => {
-    console.log(`${param}: ${typeof param}`);
-  });
-
   try {
     const results = await pool.query(query, queryParams);
     const rate = await getExchangeRate();
 
-    results.rows.map((car) => {
-      console.log(car);
-    });
-    
-
     return results.rows.map((car) => ({
       ...car,
-      priceILS: car["Price.DE."] ? (parseFloat(car["Price.DE."]) * rate).toFixed(2) : 'N/A',
+      priceILS: car["Price.DE."]
+        ? (parseFloat(car["Price.DE."]) * rate).toFixed(2)
+        : "N/A",
     }));
   } catch (error) {
     console.error("Error fetching cars with filters:", error);
@@ -96,6 +87,57 @@ const getCars = async (filters) => {
   }
 };
 
+const deleteCars = async (carNames) => {
+  const query = 'DELETE FROM electric_vehicles WHERE "Car_name" = ANY($1)';
+  try {
+    await pool.query(query, [carNames]);
+  } catch (error) {
+    console.error("Error deleting cars:", error);
+    throw error;
+  }
+};
+
+const updateCar = async (car) => {
+  const query = `
+    UPDATE electric_vehicles
+    SET "Battery" = $1,
+        "Car_name_link" = $2,
+        "Efficiency" = $3,
+        "Fast_charge" = $4,
+        "Price.DE." = $5,
+        "Range" = $6,
+        "Top_speed" = $7,
+        "Acceleration..0.100." = $8
+    WHERE "Car_name" = $9
+  `;
+  const values = [
+    car.Battery,
+    car.Car_name_link,
+    car.Efficiency,
+    car.Fast_charge,
+    car["Price.DE."],
+    car.Range,
+    car.Top_speed,
+    car["Acceleration..0.100."],
+    car.Car_name,
+  ];
+
+  Object.entries(car).forEach(([key,value]) => {
+    console.log(`key <<<>>> ${key} ----------- value <<<>>> ${value}`)
+  })
+
+  console.log(`\n\n ${query} \n\n`)
+
+  try {
+    await pool.query(query, values);
+  } catch (error) {
+    console.error("Error updating car:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   getCars,
+  deleteCars,
+  updateCar,
 };
