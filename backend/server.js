@@ -21,6 +21,15 @@ app.get('/api/data', (req, res) => {
     });
 });
 
+app.get('/api/states', (req, res) => {
+  carsModel.getStates()
+    .then(states => res.status(200).json(states))
+    .catch(error => {
+      console.error('Error fetching states:', error);
+      res.status(500).send({ message: 'Error fetching states', error: error.message });
+    });
+});
+
 app.delete('/api/cars', (req, res) => {
   const { cars } = req.body;
   if (!cars || cars.length === 0) {
@@ -47,6 +56,18 @@ app.put('/api/cars', (req, res) => {
     });
 });
 
+app.post('/api/cars',(req,res) => {
+  const car = req.body;
+  if (!car || !car.Car_name) {
+    return res.status(400).send({ message: 'Car data is incomplete or missing' });
+  }
+  carsModel.addCar(car)
+  .then(() => res.status(204).send())
+    .catch(error => {
+      console.error('Failed to add car:', error);
+      res.status(500).send({ message: 'Failed to add car', error: error.message });
+    });
+})
 
 
 // Start the server
