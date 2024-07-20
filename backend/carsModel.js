@@ -58,7 +58,7 @@ const calculateElectricityPrice = (car, avarageKm, electricityPrice) => {
   const range = car.Range;
   const battery = car.Battery;
   const price = electricityPrice;
-  const kmPerYear = avarageKm ? avarageKm : 15000; // Default average km per year if not provided
+  const kmPerYear = avarageKm ? avarageKm : 15000; 
 
   const electricityCost = (kmPerYear * range) / (battery * price);
   return electricityCost.toFixed(2);
@@ -224,6 +224,86 @@ const getStates = async () => {
   }
 };
 
+const getFastestCar = async () => {
+  const query = 'SELECT * FROM electric_vehicles ORDER BY "Top_speed" DESC LIMIT 1';
+  try {
+    const { rows } = await pool.query(query);
+    return rows[0];
+  } catch (error) {
+    console.error('Error fetching fastest car:', error);
+    throw error;
+  }
+}
+
+const getLowestAccelerationCar = async () => {
+  const query = 'SELECT * FROM electric_vehicles ORDER BY "Acceleration..0.100." ASC LIMIT 1';
+  try {
+    const { rows } = await pool.query(query);
+    return rows[0];
+  } catch (error) {
+    console.error('Error fetching lowest acceleration car:', error);
+    throw error;
+  }
+};
+
+const getMostFastChargeCar = async () => {
+  const query = `
+   WITH filtered_vehicles AS (
+  SELECT *
+  FROM electric_vehicles
+  WHERE "Fast_charge" ~ '^[0-9]+(\.[0-9]+)?$'
+)
+SELECT * 
+FROM filtered_vehicles
+WHERE "Fast_charge"::numeric = (
+  SELECT MIN("Fast_charge"::numeric) 
+  FROM filtered_vehicles
+);
+  `;
+  try {
+    const { rows } = await pool.query(query);
+    return rows[0];
+  } catch (error) {
+    console.error('Error fetching most fast charge car:', error);
+    throw error;
+  }
+};
+
+const getMostEfficientCar = async () => {
+  const query = 'SELECT * FROM electric_vehicles ORDER BY "Efficiency" DESC LIMIT 1';
+  try {
+    const { rows } = await pool.query(query);
+    return rows[0];
+  } catch (error) {
+    console.error('Error fetching most efficient car:', error);
+    throw error;
+  }
+};
+
+const getBiggestBatteryCar = async () => {
+  const query = 'SELECT * FROM electric_vehicles ORDER BY "Battery" DESC LIMIT 1';
+  try {
+    const { rows } = await pool.query(query);
+    return rows[0];
+  } catch (error) {
+    console.error('Error fetching biggest battery car:', error);
+    throw error;
+  }
+};
+
+const getBiggestRangeCar = async () => {
+  const query = 'SELECT * FROM electric_vehicles ORDER BY "Range" DESC LIMIT 1';
+  try {
+    const { rows } = await pool.query(query);
+    return rows[0];
+  } catch (error) {
+    console.error('Error fetching biggest range car:', error);
+    throw error;
+  }
+};
+
+
+
 
 module.exports = {
   getCars,
@@ -231,4 +311,10 @@ module.exports = {
   updateCar,
   addCar,
   getStates,
+  getFastestCar,
+  getLowestAccelerationCar,
+  getMostFastChargeCar,
+  getMostEfficientCar,
+  getBiggestBatteryCar,
+  getBiggestRangeCar,
 };
